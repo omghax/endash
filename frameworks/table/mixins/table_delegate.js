@@ -38,4 +38,5 @@ SC.TableDelegate = {
     
     return proposedWidth;
   }
+  
 };

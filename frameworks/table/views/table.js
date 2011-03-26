@@ -22,7 +22,7 @@ sc_require('views/data');
 
 /*globals Endash */
 
-SC.TableView = SC.View.extend({
+SC.TableView = SC.View.extend(SC.TableDelegate, {
   // backgroundColor: 'white',
   classNames: ['sc-table-view'],
   
@@ -287,6 +287,7 @@ SC.TableView = SC.View.extend({
       
       borderStyle: SC.BORDER_NONE,
       contentView: SC.TableHeaderView.extend({
+        delegate: this.get('delegate') || this,
         layout:{top:0,left:0,right:0,bottom:0},
         table: this,
         columnsBinding: SC.Binding.from('.columns',this).oneWay(),
@@ -305,6 +306,7 @@ SC.TableView = SC.View.extend({
       hasHorizontalScrollerBinding: SC.Binding.from('hasHorizontalScroller', this),
       borderStyle: SC.BORDER_NONE,
       contentView: Endash.DataView.design({
+        delegate: this.get('delegate') || this,
         classNames: ['sc-table-data-view'],
         table: this,
         rowHeight: this.get('rowHeight'),
@@ -375,37 +377,26 @@ SC.TableView = SC.View.extend({
     this.set('sortDescriptor', sortState + " " + column.get('key'));
   },
 
+
+
+
   /**
-    Called by the TableHeaderView when a column is being dragged
-    
-    @param {SC.TableColumn} column the column being dragged
+    @private
+    We handle repositioning the view specifically to avoid the overhead
+    of using set layout or adjust
   */
-  draggingColumn: function(column) {
-    // this.$().addClass('reordering-columns');
-    // this._dragging = column;
-  },
-  
-  /** 
-    Called by the TableHeaderView when a column is being dragged. Adjusts the offset of the ghost
-    
-    @param {Number} offset The offset by which the column has been dragged
-  */
-  columnDragged: function(offset) {
-    // this._ghostLeft += offset;
-  },
-  
-  /** 
-    Called by the TableHeaderView when a column has stopped dragging.
-   */
-  endColumnDrag: function() {
-    this.$().removeClass('reordering-columns');
-    if (!SC.none(this._ghost))
-    {
-      this.get('layer').removeChild(this._ghost);
+  _repositionView: function(layer, layout) {
+    if(SC.platform.touch) {
+      var transform = 'translate3d(0px, ' + layout.top + 'px,0)';
+      if (layer) {
+        layer.style.webkitTransform = transform;
+        layer.style.webkitTransformOrigin = "top left";
+        layer.style.top = '';
+      }
+    } else {
+      layer.style.top = layout.top + 'px';
     }
-    this._ghost = this._blocker = null;
-    this._ghostLeft = null;
-    this.get('columns').notifyPropertyChange('[]');
-  }
+  },
+  
   
 });
