@@ -8,7 +8,7 @@
   An experimental CollectionView mixin that makes it extremely fast under
   certain circumstances, including for mobile devices.
 */
-Endash.CollectionFastPath = {
+Endash.DataViewRendering = {
   //
   // ITEM VIEW CLASS/INSTANCE MANAGEMENT
   //
@@ -147,23 +147,24 @@ Endash.CollectionFastPath = {
     Determines the example view for a content index. There are two optional parameters that will
     speed things up: contentObject and isGroupView. If you don't supply them, they must be computed.
   */
-  exampleViewForItem: function(item, index) {
+  exampleViewForIndex: function(index) {
     var del = this.get('contentDelegate'),
-        groupIndexes = this.get('_contentGroupIndexes'),
-        key, ExampleView,
-        isGroupView = this.contentIndexIsGroup(this, this.get('content'), index);
+        // groupIndexes = this.get('_contentGroupIndexes'),
+        coords = index.split(','),
+        key, ExampleView;
+        // isGroupView = this.contentIndexIsGroup(this, this.get('content'), index);
 
-    if (isGroupView) {
-      // so, if it is indeed a group view, we go that route to get the example view
-      key = this.get('contentGroupExampleViewKey');
-      if (key && item) ExampleView = item.get(key);
-      if (!ExampleView) ExampleView = this.get('groupExampleView') || this.get('exampleView');
-    } else {
-      // otherwise, we go through the normal example view
-      key = this.get('contentExampleViewKey');
-      if (key && item) ExampleView = item.get(key);
-      if (!ExampleView) ExampleView = this.get('exampleView');
-    }
+    // if (isGroupView) {
+    //   // so, if it is indeed a group view, we go that route to get the example view
+    //   key = this.get('contentGroupExampleViewKey');
+    //   if (key && item) ExampleView = item.get(key);
+    //   if (!ExampleView) ExampleView = this.get('groupExampleView') || this.get('exampleView');
+    // } else {
+    //   // otherwise, we go through the normal example view
+    //   key = this.get('contentExampleViewKey');
+    //   if (key && item) ExampleView = item.get(key);
+    //   if (!ExampleView) ExampleView = this.get('exampleView');
+    // }
     
     return ExampleView;
   },
@@ -204,194 +205,7 @@ Endash.CollectionFastPath = {
     if (!attrs.layout) attrs.layout = ExampleView.prototype.layout;
   },
   
-  
-  
-  
-  //
-  // ITEM LOADING/DOM MANAGEMENT
-  //
-  
-  /**
-    @private
-    Returns mapped item views for the supplied item.
-  */
-  mappedViewsForItem: function(item, map) {
-    if (!map) map = this._viewMap;
-    return map[SC.guidFor(item)];
-  },
-  
-  /**
-    @private
-    Returns the mapped view for an item at the specified index. 
-  */
-  mappedViewForItem: function(item, idx, map) {
-    if (!map) map = this._viewMap;
-    var m = map[SC.guidFor(item)];
-    if (!m) return undefined;
-    return m[idx];
-  },
-  
-  /**
-    @private
-    Maps a view to an item/index combination.
-  */
-  mapView: function(item, index, view, map) {
-    // get the default view map if a map was not supplied
-    if (!map) map = this._viewMap;
-    
-    // get the item map
-    var g = SC.guidFor(item),
-        imap = map[g];
-    if (!imap) imap = map[g] = {_length: 0};
-    
-    // fill in the index
-    imap[index] = view;
-    imap._length++;
-  },
-  
-  /**
-    Unmaps a view from an item/index combination.
-  */
-  unmapView: function(item, index, map) {
-    if (!map) map = this._viewMap;
-    var g = SC.guidFor(item),
-        imap = map[g];
-    
-    // return if there is nothing to do
-    if (!imap) return;
-    
-    // remove
-    if (imap[index]) {
-      var v = imap[index];
-      delete imap[index];
-      
-      imap._length--;
-      if (imap._length <= 0) delete map[g];
-    }
-  },
-  
-  /**
-    Returns the item view for the given content index.
-    NOTE: THIS WILL ADD THE VIEW TO DOM TEMPORARILY (it will be cleaned if
-          it is not used). As such, use sparingly.
-  */
-  itemViewForContentIndex: function(index) {
-    var content = this.get("content");
-    if (!content) return;
-    
-    var item = content.objectAt(index);
-    if (!item) return null;
-    
-    var exampleView = this.exampleViewForItem(item, index),
-        view = this._indexMap[index];
-    
-    if (view && view.createdFromExampleView !== exampleView) {
-      this.removeItemView(view);
-      this.unmapView(item, index);
-      view = null;
-    }
-    
-    if (!view) {
-      view = this.addItemView(exampleView, item, index);
-    }
-    
-    return view;
-  },
-  
-  /**
-    @private
-    Returns the nearest item view index to the supplied index mapped to the item.
-  */
-  nearestMappedViewIndexForItem: function(item, index, map) {
-    var m = this.mappedViewsForItem(item, map);
-    if (!m) return null;
-    
-    // keep track of nearest and the nearest distance
-    var nearest = null, ndist = -1, dist = 0;
-    
-    // loop through
-    for (var idx in m) {
-      idx = parseInt(idx, 10);
-      if (isNaN(idx)) continue;
-      // get distance
-      dist = Math.abs(index - idx);
-      
-      // compare to nearest distance
-      if (ndist < 0 || dist < ndist) {
-        ndist = dist;
-        nearest = idx;
-      }
-    }
-    
-    return nearest;
-  },
-  
-  /**
-    @private
-    Remaps the now showing views to their new indexes (if they have moved).
-  */
-  remapItemViews: function(nowShowing) {
-    // reset the view map, but keep the old for removing
-    var oldMap = this._viewMap || {},
-        newMap = (this._viewMap = {}),
-        indexMap = (this._indexMap = {}),
-        mayExist = [],
-        content = this.get("content"), item;
 
-    if (!content) return;
-    var itemsToAdd = this._itemsToAdd;
-
-    // first, find items which we can (that already exist, etc.)
-    nowShowing.forEach(function(idx) {
-      item = content.objectAt(idx);
-      
-      // determine if we have view(s) in the old map for the item
-      var possibleExistingViews = this.mappedViewsForItem(item, oldMap);
-      if (possibleExistingViews) {
-        
-        // if it is the same index, we just take it. End of story.
-        if (possibleExistingViews[idx]) {
-          var v = possibleExistingViews[idx];
-          this.unmapView(item, idx, oldMap);
-          this.mapView(item, idx, v, newMap);
-          indexMap[idx] = v;
-        } else {
-          // otherwise, we must investigate later
-          mayExist.push(idx);
-        }
-      } else {
-        // if it is in now showing but we didn't find a view, it needs to be created.
-        itemsToAdd.push(idx);
-      }
-    }, this);
-    
-    // now there are also some items which _could_ exist (but might not!)
-    for (var idx = 0, len = mayExist.length; idx < len; idx++) {
-      var newIdx = mayExist[idx];
-      item = content.objectAt(newIdx);
-      var nearestOldIndex = this.nearestMappedViewIndexForItem(item, newIdx, oldMap),
-          nearestView;
-      
-      if (!SC.none(nearestOldIndex)) {
-        nearestView = this.mappedViewForItem(item, nearestOldIndex, oldMap);
-        var newExampleView = this.exampleViewForItem(item, newIdx);
-        if (newExampleView === nearestView.createdFromExampleView) {
-          // if there is a near one, use it, and remove it from the map
-          this.unmapView(item, nearestOldIndex, oldMap);
-          this.mapView(item, newIdx, nearestView, newMap);
-          indexMap[newIdx] = nearestView;
-        } else {
-          itemsToAdd.push(newIdx);
-        }
-      } else {
-        // otherwise, we need to create it.
-        itemsToAdd.push(newIdx);
-      }
-    }
-    
-    return oldMap;
-  },
-  
   /**
     Reloads.
   */
@@ -422,8 +236,8 @@ Endash.CollectionFastPath = {
     // get arrays of items to add/remove
     var itemsToAdd = this._itemsToAdd || (this._itemsToAdd = []);
     
-    // remap
-    var oldMap = this.remapItemViews(nowShowing);
+    
+    
     
     // The oldMap has the items to remove, so supply it to processRemovals
     this.processRemovals(oldMap);
