@@ -1,14 +1,36 @@
 sc_require('views/table_cell');
 
-SC.TableRowView = SC.View.extend(SC.SimpleLayout, {
-  isPoolable: YES,
-  layerIsCacheable: YES,
+SC.TableRowView = SC.View.extend(SC.SimpleLayout, SC.StaticLayout, {
+  useStaticLayout: YES,
   thicknessesKey: 'columns',
   thicknessKey: 'width',
 
   columnsBinding: '.parentView.columns',
 
   classNames: ['sc-dataview-row'],
+  
+  
+  /**
+    The actual cell view
+    @property {SC.View}
+  */
+  cellView: Endash.TableCellView,
+  
+  /**
+    The cell content view, which gets placed inside a cell
+    and actually displays the contents for the cell
+    @property {SC.View}
+  */
+  cellContentView: SC.LabelView.extend({
+    isPoolable: YES,
+    layerIsCacheable: YES,
+    contentValueKeyBinding: '*column.key',
+    
+    contentValueKeyDidChange: function() {
+      this.updatePropertyFromContent('value', '*', 'contentValueKey');
+    }.observes('contentValueKey')
+  }),
+  
   
   isSelectedDidChange: function() {
     var isSelected = this.get('isSelected');
@@ -29,6 +51,22 @@ SC.TableRowView = SC.View.extend(SC.SimpleLayout, {
     sc_super();
   },
   
+  /**
+    @private
+    Gets the cell content class for a given column, defaults to our
+    cellContentView
+  */
+  cellViewForColumn: function(col) {
+    var columns = this.get('columns'),
+      column = columns.objectAt(col),
+      ret;
+      
+    if(ret = column.get('exampleView')) return ret;
+
+    return this.get('cellContentView');
+  },
+  
+  
   // we'll handle layout from here-on-out thank you
   // renderLayout: function(context, firstTime) {
   //   if(firstTime) sc_super();
@@ -40,6 +78,9 @@ SC.TableRowView = SC.View.extend(SC.SimpleLayout, {
   */
   _trv_columnsDidChange: function() {
     this.beginPropertyChanges();
+    
+    if(!this.get('columns')) return;
+        
     var cellViews = this._sc_cell_views || (this._sc_cell_views = {}),
       columns = this.get('columns'),
       // numCells = cellViews.get('length'),
@@ -47,7 +88,7 @@ SC.TableRowView = SC.View.extend(SC.SimpleLayout, {
       numCols = columns.get('length'),
       i, cell;
       
-    if(!this.get('columns')) return;
+
 
     this.set('thicknesses', this.get('columns'));
     
@@ -136,22 +177,6 @@ SC.TableRowView = SC.View.extend(SC.SimpleLayout, {
   
   /**
     @private
-    Set our classnames
-  */
-  awakeFromPool: function() {
-    // striping
-    var eo = (this.get('contentIndex') % 2 === 0) ? 'even' : 'odd';
-    this.get('layer').className = this.get('classNames').join(" ") + " " + eo;
-    
-    if(this.get('isSelected')) {
-      this.$().addClass('sel');
-    } else {
-      this.$().removeClass('sel');
-    }
-  },
-  
-  /**
-    @private
     Manual repositioning for speed
   */
   repositionView: function(view, layout) {
@@ -183,8 +208,8 @@ SC.TableRowView = SC.View.extend(SC.SimpleLayout, {
   _createNewCellView: function(col) {
     var columns = this.get('columns'),
       column = columns.objectAt(col),
-      E = this.get('parentView').cellViewForColumn(col),
-      wrapper = this.get('parentView').get('cellView'),
+      E = this.cellViewForColumn(col),
+      wrapper = this.get('cellView'),
       attrs = {};
       
     var content = this.get('content');

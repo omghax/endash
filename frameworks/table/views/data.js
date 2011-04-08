@@ -20,7 +20,7 @@ sc_require('views/table_row');
 
 /*globals Endash */
 
-Endash.DataView = SC.ListView.extend(Endash.CollectionFastPath, {
+Endash.DataView = SC.ListView.extend({
   backgroundColor: 'red',
   /**
     TableRow
@@ -28,149 +28,245 @@ Endash.DataView = SC.ListView.extend(Endash.CollectionFastPath, {
   */
   exampleView: SC.TableRowView,
   
-  /**
-    The actual cell view
-    @property {SC.View}
-  */
-  cellView: Endash.TableCellView,
+  blocks: null,
   
-  /**
-    The cell content view, which gets placed inside a cell
-    and actually displays the contents for the cell
-    @property {SC.View}
-  */
-  cellContentView: SC.LabelView.extend({
-    isPoolable: YES,
-    layerIsCacheable: YES,
-    contentValueKeyBinding: '*column.key',
+  blocksOrder: null,
+  
+  init: function() {
+    this.set('blocks', [
+      Endash.TableRowBlock.create({
+        // backgroundColor: 'white',
+        backgroundColor: 'blue', 
+        contentBinding: '.parentView*content', 
+        columnsBinding: '.parentView*columns'
+      }),
+      Endash.TableRowBlock.create({
+        backgroundColor: 'green',
+        // backgroundColor: 'white',
+        contentBinding: '.parentView*content',
+        columnsBinding: '.parentView*columns'
+      })
+    ]);
     
-    contentValueKeyDidChange: function() {
-      this.updatePropertyFromContent('value', '*', 'contentValueKey');
-    }.observes('contentValueKey')
-  }),
-  
-  columnsDidChange: function() {
-    this.widthsDidChange(null, '[]', 0, YES);
-  }.observes('*columns.[]'),
-  
-  didReload: function() {
-    if(!this.get('content')) return;
-    this._didFullReload = YES;
-  },
-  
-  widthsDidChange: function(object, key, value, force) {
-    if(!this._didFullReload) return;
-    
-    var columns = this.get('columns'),
-      width = columns.get('@sum(width)'),
-      nowShowing = this.get('nowShowing'),
-      view, idx;
-    
-    if(width == this._width && !force) return;
-    this._width = width;
+    this.set('childViews', this.get('blocks'))
 
-    if(key == '[]') {
-      idx = 0;
-    } else {
-      idx = columns.indexOf(object);
+    sc_super();
+  },
+
+  reloadIfNeeded: function(r) {
+
+    if(!this.get('content')) { 
+      this.layoutBlocks(); 
+      return;
     }
+
+      
+    var clippingFrame = this.get('clippingFrame'),
+      _frame = this._frame;
     
-    nowShowing.forEach(function(idx2) {
-      view = this.itemViewForContentIndex(idx2);
-      view.widthDidChangeForIndex(idx);
+    // if(!_frame || _frame.height != clippingFrame.height) 
+      
+    var blocks = this.get('blocks'),
+      blockHeight = this.get('blockHeight'),
+      blockPosition = Math.floor(clippingFrame.y / blockHeight),
+      oldPosition = this._blockPosition,
+      blockDiff = Math.floor((clippingFrame.y - blockPosition) / blockHeight),
+      nowShowing = r || this.get('nowShowing'),
+      frame;
+    
+    
+    block = blocks.find(function(block) {
+      var frame = {
+        y: block.get('top'),
+        height: block.get('height')
+      }
+      return frame.y < clippingFrame.y && frame.y + frame.height > clippingFrame.y
     }, this);
     
-    // this.set('totalWidth', width);
-    // this.adjust('minWidth', width);
-    // this.set('calculatedWidth', width);
-  },
-
-  /**
-    @private
-    Gets the cell content class for a given column, defaults to our
-    cellContentView
-  */
-  cellViewForColumn: function(col) {
-    var columns = this.get('columns'),
-      column = columns.objectAt(col),
-      ret;
+    if(!block) {
+      block = blocks.objectAt(0);
+      block2 = blocks.objectAt(1);
       
-    if(ret = column.get('exampleView')) return ret;
+      block.set('position', -1)
+      block2.set('position', 0)
 
-    return this.get('cellContentView');
+      var frame = {
+        y: this.rowOffsetForContentIndex(nowShowing.get('min')),
+        height: blockHeight
+      }
+      
+      // console.log(block.get('frame').height)
+      this.layoutBlock(block, this.contentIndexesInRect(frame));
+      // console.log(block.get('frame').height)
+      // range = this.fitRangeToBlock(block, );
+      // console.log(range)
+      // this.fitBlockToRange(block, range);
+      
+
+      if(!_frame || _frame.y >= clippingFrame.y) {
+        // put the block below b/c we're scorlling down
+        var frame = {
+          y: block.get('top') + block.get('height'),
+          height: blockHeight
+        }
+        
+        console.log(frame)
+        
+        this.layoutBlock(block2, this.contentIndexesInRect(frame));
+        
+      } else {
+        // put the block above b/c we're scrolling up
+        block2.adjust({
+         // top: clippingFrame.y - blockHeight,
+         // height: blockHeight
+        });
+      }
+
+    } else {
+      console.log('second branch');
+            
+
+      block2 = blocks.objectAt( blocks.indexOf(block) == 0 ? 1 : 0)
+
+      if(block2.get('position') == 0)
+        return;
+        
+      block.set('position', -1)
+      block2.set('position', 0)
+      console.log('second branch2');
+      // console.log('branch 2', block2.get('isVisible'), block2.get('isVisibleInWindow'))
+      
+      // if(block2.get('isVisible'))
+        // return;
+        
+      if(_frame.y <= clippingFrame.y) {
+        // put the block below b/c we're scorlling down
+console.log('reposition')
+        var frame = {
+          y: block.get('top') + block.get('height'),
+          height: blockHeight
+        }
+        
+        this.layoutBlock(block2, this.contentIndexesInRect(frame));
+        
+      } else {
+        // put the block above b/c we're scrolling up
+        block2.adjust({
+         // top: clippingFrame.y - blockHeight,
+         // height: blockHeight
+        });
+      }
+    }
+
+    this._frame = SC.clone(clippingFrame)
+    this.adjust(this.computeLayout());
   },
   
-  /**
-    @private
-    We handle repositioning the view specifically to avoid the overhead
-    of using set layout or adjust
-  */
-  _repositionView: function(layer, layout, view) {
-    if(SC.platform.supportsAcceleratedLayers) {
-      var transform = 'translate3d(0px, ' + layout.top + 'px,0)';
-      if (layer) {
+  layoutBlock: function(block, range) {
+    console.log(range.toArray())
+    block.set('range', range);
+    var layout = {
+      top: this.rowOffsetForContentIndex(range.get('min')),
+      height: this.rowOffsetForContentIndex(range.get('max')) - this.rowOffsetForContentIndex(range.get('min'))
+    }
+    console.log(layout.height)
+    this.repositionView(block, layout);
+    block.set('height', layout.height)
+    block.set('top', layout.top)
+    return range;
+  },
+  
+  layoutBlocks: function() {
+    var clippingFrame = this.get('clippingFrame'),
+      blocks = this.get('blocks'),
+      blockHeight = Math.floor(clippingFrame.height * 2);
+
+    this.set('blockHeight', blockHeight);
+    
+    var layout = {
+      top: 0,
+      height: blockHeight
+    };
+    
+    blocks.forEach(function(block) {
+      // block.adjust('height', blockHeight);
+      delete block.get('layer').style['top']
+      delete block.get('layer').style['height']
+      this.repositionView(block, layout);
+      block.set('height', blockHeight)
+    }, this);
+  },
+  
+  
+  repositionView: function(view, layout) {
+    if(!view) return
+    
+    var layer = view.get('layer'),
+      transform;
+      
+    if (layer) {
+      if(SC.platform.supportsAcceleratedLayers) {
+      // if(SC.platform.touch) {
+        transform = 'translate3d(0px,' + layout.top + 'px, 0) ';
         layer.style.webkitTransform = transform;
         layer.style.webkitTransformOrigin = "top left";
-        layer.style.top = '';
+      } else {
+        layer.style.top = layout.top + "px";
       }
+      layer.style.height = layout.height + "px";
     } else {
-      layer.style.top = layout.top + 'px';
+      view.adjust(layout);
     }
   },
   
-  /**
-    @private
-    Sends a view to a DOM pool.
-  */
-  sendToDOMPool: function(view) {
-    var pool = this.domPoolForExampleView(view.createdFromExampleView);
-    pool.push(view);
-    var f = view.get("frame");
-    
-    this._repositionView(view.get('layer'), {top: -(f.height + 2)}, view);
-    
-    view.set("layerId", SC.guidFor(view));
-    if (view.sleepInDOMPool) view.sleepInDOMPool();
-  },
   
-  /**
-    @private
-    This should completely reset the view, but we don't use it right now.
+  
+  
+  
+  /** @private
+    Tells ScrollView that this should receive live updates during touch scrolling.
+    We are so fast, aren't we?
   */
-  _reset: function() {
-    this.reloadIfNeeded(SC.IndexSet.create(), true);
-    delete this._viewMap;
-    delete this._indexMap;
-    var pools = this._domPools || (this._domPools = {});
-    for (var p in pools) {
-      for(var i = 0, len = pools[p].length; i < len; i++) {
-        pools[p][i].destroy();
-      }
-      pools[p].length = 0;
+  _lastTopUpdate: 0,
+
+  /** @private */
+  _lastLeftUpdate: 0,
+
+  /** @private */
+  _tolerance: 100,
+  
+  /** @private */
+  touchScrollDidChange: function(left, top) {
+    // prevent getting too many in close succession.
+    if (Date.now() - this._lastTouchScrollTime < 25) return;
+    
+    var clippingFrame = this.get('clippingFrame');
+    
+    var cf = this._inScrollClippingFrame || (this._inScrollClippingFrame = {x: 0, y: 0, width: 0, height: 0});
+    cf.x = clippingFrame.x; cf.y = clippingFrame.y; cf.width = clippingFrame.width; cf.height = clippingFrame.height;
+    
+    // update
+    cf.x = left;
+    cf.y = top;
+    
+    var r = this.contentIndexesInRect(cf);
+    if (!r) return; // no rect, do nothing.
+    
+    var len = this.get('length'), 
+        max = r.get('max'), min = r.get('min');
+
+    if (max > len || min < 0) {
+      r = r.copy();
+      r.remove(len, max-len).remove(min, 0-min).freeze();
     }
     
-    this.reloadIfNeeded(null, true);
-  },
-  
-  configureItemView: function(itemView, attrs) {
-    itemView.beginPropertyChanges();
-    itemView.setIfChanged('content', attrs.content);
-    itemView.setIfChanged('contentIndex', attrs.contentIndex);
-    itemView.setIfChanged('parentView', attrs.parentView);
-    itemView.setIfChanged('layerId', attrs.layerId);
-    itemView.setIfChanged('isEnabled', attrs.isEnabled);
-    itemView.setIfChanged('isSelected', attrs.isSelected);
-    itemView.setIfChanged('outlineLevel', attrs.outlineLevel);
-    itemView.setIfChanged('disclosureState', attrs.disclosureState);
-    itemView.setIfChanged('isVisibleInWindow', attrs.isVisibleInWindow);
-    itemView.setIfChanged('isGroupView', attrs.isGroupView);
-    itemView.setIfChanged('page', this.page);
-    itemView.endPropertyChanges();
+    if (this._lastNowShowing) {
+      if (r.contains(this._lastNowShowing) && this._lastNowShowing.contains(r)) return;
+    }
+    this._lastNowShowing = r;
+    this.reloadIfNeeded(r, YES);
     
-    this._repositionView(itemView.get('layer'), attrs.layout, itemView);
-    itemView._updateCells();
-    itemView.widthDidChangeForIndex(0);
+    this._lastTouchScrollTime = Date.now();
   }
-  
 
 });

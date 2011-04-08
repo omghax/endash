@@ -312,7 +312,7 @@ SC.TableView = SC.View.extend({
         left:   0,
         right:  0,
         bottom: 0,
-        top:    this.get('useHeaders')?this.get('headerHeight'):0
+        top:    this.get('useHeaders') ? this.get('headerHeight') + 1 : 0
       },
       hasHorizontalScrollerBinding: SC.Binding.from('hasHorizontalScroller', this),
       borderStyle: SC.BORDER_NONE,
@@ -392,8 +392,8 @@ SC.TableView = SC.View.extend({
   // observe each array once like this
   
   widthsDidChange: function(object, key, value, force) {
-    this._dataView.contentView.widthsDidChange(object, key, value, force);
-    this._tableHeaderView.contentView.widthsDidChange(object, key, value, force);
+    // this._dataView.contentView.widthsDidChange(object, key, value, force);
+    // this._tableHeaderView.contentView.widthsDidChange(object, key, value, force);
   }.observes('*columns.@each.width'),
 
   
