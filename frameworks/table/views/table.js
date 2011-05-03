@@ -303,7 +303,9 @@ SC.TableView = SC.View.extend({
       horizontalScrollOffsetBinding: SC.Binding.from('.horizontalScrollOffset',this),
       
       borderStyle: SC.BORDER_NONE,
-      contentView: SC.TableHeaderView.extend(attrs)
+      contentView: SC.TableHeaderView.extend(attrs, {
+        verticalScrollerThicknessBinding: SC.Binding.from('._dataView.verticalScrollerView.scrollbarThickness', this).oneWay()
+      })
     }));
     
     this._dataView = data = this.createChildView(this.get('exampleScrollView').design({

@@ -55,7 +55,14 @@ Endash.DataView = SC.ListView.extend(Endash.CollectionFastPath, {
   
   didReload: function() {
     if(!this.get('content')) return;
+    
+    var isFirstFullReload = (!this._didFullReload);
     this._didFullReload = YES;
+    
+    // Invoke only on the the initial full reload
+    if(isFirstFullReload) {
+      this.columnsDidChange();
+    }
   },
   
   widthsDidChange: function(object, key, value, force) {
@@ -80,9 +87,9 @@ Endash.DataView = SC.ListView.extend(Endash.CollectionFastPath, {
       view.widthDidChangeForIndex(idx);
     }, this);
     
-    // this.set('totalWidth', width);
-    // this.adjust('minWidth', width);
-    // this.set('calculatedWidth', width);
+    this.set('totalWidth', width);
+    this.adjust('minWidth', width);
+    this.set('calculatedWidth', width);
   },
 
   /**
