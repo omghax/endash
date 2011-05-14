@@ -68,8 +68,9 @@ Endash.DataView = SC.ListView.extend(Endash.CollectionFastPath, {
   widthsDidChange: function(object, key, value, force) {
     if(!this._didFullReload) return;
     
-    var columns = this.get('columns'),
-      width = columns.get('@sum(width)'),
+    var columns = this.get('columns');
+    if(!columns) return;
+    var width = columns.get('@sum(width)'),
       nowShowing = this.get('nowShowing'),
       view, idx;
     
