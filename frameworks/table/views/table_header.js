@@ -26,8 +26,9 @@ SC.TableHeaderView = SC.TableRowView.extend({
   verticalScrollerThickness: 0,
   
   widthsDidChange: function(object, key, value) {
-    var columns = this.get('columns'),
-      width = columns.get('@sum(width)'),
+    var columns = this.get('columns');
+    if(!columns) return;
+    var width = columns.get('@sum(width)'),
       verticalScrollerThickness = this.get('verticalScrollerThickness'),
       idx;
       
