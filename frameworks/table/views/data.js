@@ -178,7 +178,11 @@ Endash.DataView = SC.ListView.extend(Endash.CollectionFastPath, {
     this._repositionView(itemView.get('layer'), attrs.layout, itemView);
     itemView._updateCells();
     itemView.widthDidChangeForIndex(0);
+  },
+
+  layoutChildViews: function() {
+    // This is already handled internally
+    this.reloadIfNeeded(null, true);
   }
-  
 
 });
