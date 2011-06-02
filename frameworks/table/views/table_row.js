@@ -44,7 +44,7 @@ SC.TableRowView = SC.View.extend(SC.SimpleLayout, {
       columns = this.get('columns'),
       // numCells = cellViews.get('length'),
       numCells = this._layoutViews ? this._layoutViews.get('length') : 0,
-      numCols = columns.get('length'),
+      numCols = columns ? columns.get('length') : 0 ,
       i, cell;
       
     if(!this.get('columns')) return;
