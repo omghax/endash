@@ -119,19 +119,19 @@ SC.TableRowView = SC.View.extend(SC.SimpleLayout, {
 
     if(cellView && contentView)
     {
-	cellView.beginPropertyChanges();
-	contentView.beginPropertyChanges();
+      cellView.beginPropertyChanges();
+      contentView.beginPropertyChanges();
 
-	// column is the same, position might not be
-	cellView.set('columnIndex', idx);
-	contentView.set('columnIndex', idx);
+      // column is the same, position might not be
+      cellView.set('columnIndex', idx);
+      contentView.set('columnIndex', idx);
 
-	cellView.set('contentIndex', this.get('contentIndex'));
-	contentView.set('contentIndex', this.get('contentIndex'));
-	contentView.set('content', content);
+      cellView.set('contentIndex', this.get('contentIndex'));
+      contentView.set('contentIndex', this.get('contentIndex'));
+      contentView.set('content', content);
 
-	contentView.endPropertyChanges();
-	cellView.endPropertyChanges();
+      contentView.endPropertyChanges();
+      cellView.endPropertyChanges();
     }
     return;
   },
