@@ -197,7 +197,9 @@ SC.TableRowView = SC.View.extend(SC.SimpleLayout, {
     attrs.content = content;
     attrs.contentIndex = this.get('contentIndex');
     attrs.contentValueKey = column.get('key');
+    attrs.formatter = column.get('formatter');
     (attrs.classNames || (attrs.classNames = [])).push('column-' + col);
+    
 
     return wrapper.create(attrs, {
       layoutDelegate: this,
