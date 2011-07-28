@@ -141,15 +141,12 @@ SC.TableRowView = SC.View.extend(SC.SimpleLayout, {
     Set our classnames
   */
   awakeFromPool: function() {
-    // striping
-    var eo = (this.get('contentIndex') % 2 === 0) ? 'even' : 'odd';
-    this.get('layer').className = this.get('classNames').join(" ") + " " + eo;
-    
-    if(this.get('isSelected')) {
-      this.$().addClass('sel');
-    } else {
-      this.$().removeClass('sel');
-    }
+    var contentIndex = this.get('contentIndex');
+    this.$().setClass({
+      even: contentIndex % 2 === 0,
+      odd:  contentIndex % 2 === 1,
+      sel:  this.get('isSelected')
+    });
   },
   
   /**
