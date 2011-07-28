@@ -115,12 +115,15 @@ Endash.DataView = SC.ListView.extend(Endash.CollectionFastPath, {
   */
   _repositionView: function(layer, layout, view) {
     if(SC.platform.supportsAcceleratedLayers) {
-      var transform = 'translate3d(0px, ' + layout.top + 'px,0)';
-      if (layer) {
-        layer.style.webkitTransform = transform;
-        layer.style.webkitTransformOrigin = "top left";
-        layer.style.top = '';
+      if (!layer) {
+        view.createLayer();
+        layer = view.get('layer');
       }
+
+      var transform = 'translate3d(0px, ' + layout.top + 'px,0)';
+      layer.style.webkitTransform = transform;
+      layer.style.webkitTransformOrigin = "top left";
+      layer.style.top = '';
     } else {
       layer.style.top = layout.top + 'px';
     }
