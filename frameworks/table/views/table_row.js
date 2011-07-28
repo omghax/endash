@@ -136,11 +136,23 @@ SC.TableRowView = SC.View.extend(SC.SimpleLayout, {
     return;
   },
   
+  awakeFromPool: function() {
+    this._updateClassNames();
+  },
+
+  /**
+    @private
+    Update the class names if the contentIndex changes, such as when sorting.
+  */
+  contentIndexDidChange: function() {
+    this._updateClassNames();
+  }.observes('contentIndex'),
+
   /**
     @private
     Set our classnames
   */
-  awakeFromPool: function() {
+  _updateClassNames: function() {
     var contentIndex = this.get('contentIndex');
     this.$().setClass({
       even: contentIndex % 2 === 0,
@@ -148,7 +160,7 @@ SC.TableRowView = SC.View.extend(SC.SimpleLayout, {
       sel:  this.get('isSelected')
     });
   },
-  
+
   /**
     @private
     Manual repositioning for speed
