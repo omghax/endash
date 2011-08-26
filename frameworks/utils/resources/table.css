@@ -1,24 +1,24 @@
 /*
 .sc-table-header {
-  background: static_url('resources/table_header_background.png') !important;
+  background: static_url('resources/table_header_background.png');
 }
 
 .sc-table-header .sc-table-cell {
-  overflow: visible !important;
+  overflow: visible;
 }
 
 .sc-table-header .sc-table-cell {
 }
 
 .sc-table-header label {
-  font-family: Helvetica !important;
-  line-height: 30px !important;
+  font-family: Helvetica;
+  line-height: 30px;
   font-weight: normal;
   color: #363636;
 }
 
 .sc-thumb-view {
-  z-index: 3 !important;
+  z-index: 3;
   overflow: visible;
 }
 

@@ -1,32 +1,32 @@
 .sc-table-header {
-  background: static_url('resources/table_header_background_3.png') center left !important;
+  background: static_url('resources/table_header_background_3.png') center left;
   border-bottom: 1px solid #CACACA;
 }
 
 .sc-table-header .sc-table-cell {
-  overflow: visible !important;
+  overflow: visible;
 }
 
 .sc-table-header label {
   display: block;
-  font-family: Helvetica !important;
-  line-height: 26px !important;
+  font-family: Helvetica;
+  line-height: 26px;
   font-weight: normal;
-  color: #363636 !important;
+  color: #363636;
   overflow: hidden;
   text-overflow: ellipsis;
-  height: auto !important;
-  margin: 0px !important;
+  height: auto;
+  margin: 0px;
 }
 
   .sc-table-header .sc-thumb-view {
-    z-index: 3 !important;
+    z-index: 3;
     overflow: visible;
-    background: static_url('resources/grippy2.png') 6px center no-repeat !important;
+    background: static_url('resources/grippy2.png') 6px center no-repeat;
   }
 
     .sc-table-header .sc-thumb-view:hover, .sc-table-header .sc-thumb-view.dragging {
-      background: static_url('resources/grippy.png') 6px center no-repeat !important;
+      background: static_url('resources/grippy.png') 6px center no-repeat;
     }
 
     .sc-table-header .dragger {
@@ -40,30 +40,30 @@
     }
     
     .sc-table-header .dragging .dagger {
-      display: none !important;
+      display: none;
     }
     
 .sc-table-data-view .sc-dataview-row.odd {
-/*  background-color: #f6fafe !important;*/
-  background-color: #f9fafb !important;
+/*  background-color: #f6fafe;*/
+  background-color: #f9fafb;
 }
 
 
 .sc-table-data-view .sc-dataview-row.sel {
 
 
-/*  background-color: #38a0f0 !important;*/
-  background-color: #72bdf7 !important;
-/*  background-color: #84c1f0 !important;*/
-/*  border-bottom: 1px solid #5ab5fb !important;*/
-/*  border-bottom: 1px solid white !important;*/
-  color: white !important;
+/*  background-color: #38a0f0;*/
+  background-color: #72bdf7;
+/*  background-color: #84c1f0;*/
+/*  border-bottom: 1px solid #5ab5fb;*/
+/*  border-bottom: 1px solid white;*/
+  color: white;
 }
 
 .sc-table-data-view .sc-dataview-row.sel .sc-label-view {
-/*  background-color: #6aabe3 !important;*/
-  color: white !important;
-  font-weight: bold !important;
+/*  background-color: #6aabe3;*/
+  color: white;
+  font-weight: bold;
 }
 
 
@@ -81,15 +81,15 @@
 }
 
 .sc-table-data-view .sc-dataview-row.sel .table-cell {
-  border-right: none !important;
+  border-right: none;
 }
 
 .sc-table-data-view .table-cell .sc-label-view {
   white-space: nowrap;
   text-overflow: ellipsis;
   font-family: Helvetica;
-  font-size: 12px !important;
-  line-height: 30px !important;
+  font-size: 12px;
+  line-height: 30px;
   
   color: #404040;
 }
@@ -106,7 +106,7 @@
 
 
 .sc-table-data-view .odd {
-/*  background-color: #f9fafb !important;*/
+/*  background-color: #f9fafb;*/
 }
 
 .sc-sort-state-asc {
